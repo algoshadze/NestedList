@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        ul {
+            list-style-type: none;
+
+        }
+
+        span:hover {
+            font-weight: bold;
+
+        }
+
+        span {
+            cursor: pointer;
+        }
+
+        .hide::before {
+            content: '+ ';
+        }
+
+        .show::before {
+            content: '− ';
+        }
+    </style>
+</head>
+
+<body>
+    <div id="debug"></div>
+    <ul id='root'>
+    </ul>
+
+    <script>
+        function parse(nodeKeys, ind, currentNode) {
+            let key = nodeKeys[ind]
+            let nextNode = currentNode[key]
+            if (!nextNode) {
+                nextNode = {}
+                currentNode[key] = nextNode
+            }
+            else if (nodeKeys.length == 0) {
+                console.log(ind)
+                let span = document.createElement('span')
+                span.innerText = 'Сведений не найдено'
+                let f = document.querySelector('root')
+                f.append(span)
+
+            }
+
+
+            if (ind + 1 < nodeKeys.length)
+                parse(nodeKeys, ind + 1, nextNode)
+        }
+        function addNode(node, currentElement) {
+            for (let key in node) {
+                let li = document.createElement('li')
+                li.innerText = key
+                let ul = document.createElement('ul')
+                li.append(ul)
+                currentElement.append(li)
+                addNode(node[key], ul)
+            }
+        }
+
+        onload = function () {
+            fetch("sample-file.json")
+                .then(response => response.json())
+                .then(data => {
+                    let rootNode = {}
+                    for (let i = 0; i < data.length; i++) {
+                        let nodeKeys = data[i].value.split('\\')
+
+                        if (nodeKeys.length != 0) {
+                            let ind = 0
+                            parse(nodeKeys, ind, rootNode)
+                        }
+
+                    }
+                    addNode(rootNode, document.querySelector('#root'))
+                    for (let li of root.querySelectorAll('li')) {
+                        let span = document.createElement('span')
+                        span.classList.add('show')
+                        li.prepend(span)
+                        span.append(span.nextSibling)
+                    }
+
+                    root.onclick = function (event) {
+                        console.log(event.target.tagName)
+                        if (event.target.tagName != 'SPAN') return
+                        let childrenContainer = event.target.parentNode.querySelector('ul')
+                        if (!childrenContainer) {
+
+                            return
+                        }
+
+                        childrenContainer.hidden = !childrenContainer.hidden
+
+                        if (childrenContainer.hidden) {
+                            event.target.classList.add('hide')
+                            event.target.classList.remove('show')
+                        }
+                        else {
+                            event.target.classList.add('show')
+                            event.target.classList.remove('hide')
+                        }
+
+                    }
+                })
+        }
+    </script>
+</body>
+
+</html>
